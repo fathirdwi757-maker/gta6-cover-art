@@ -3,93 +3,79 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Neon Horizon Cover Studio</title>
+<title>Neon Horizon Cover Studio — GTA-style cover art from your photos</title>
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<main class="app">
-  <section class="controls" aria-label="Cover controls">
-    <h1>Neon Horizon <span>Cover Studio</span></h1>
-    <p class="tagline">Your photos + a caption &rarr; GTA-style multi-panel cover art. Offline, private, one click to a shareable PNG.</p>
+<div class="app">
+  <aside class="rail">
+    <header class="brand">
+      <h1>Neon Horizon</h1>
+      <p class="tagline">Cover Studio — your photos, poster-cover art, one PNG.</p>
+    </header>
 
-    <fieldset>
-      <legend>1 &middot; Photos</legend>
-      <label class="file">Add your photos <input id="photos" type="file" accept="image/*" multiple></label>
-      <div id="thumbs" class="thumbs" aria-label="Loaded photos"></div>
-      <p class="hint">Click a panel on the cover to select it, drag inside it to position the photo, then pick which photo fills it:</p>
-      <label>Panel photo
-        <select id="panelPhoto"></select>
+    <section class="group">
+      <h2>1 · Photos</h2>
+      <div id="sample-row" class="sample-row"></div>
+      <label class="upload-button">
+        Upload your photo
+        <input id="photo-file" type="file" accept="image/*" multiple hidden>
       </label>
-      <label>Panel zoom <input id="panelZoom" type="range" min="1" max="3" step="0.01" value="1"></label>
-      <label class="check"><input id="panelFlip" type="checkbox"> Flip this panel&rsquo;s photo</label>
-    </fieldset>
+      <p class="hint">A sample or an upload lands in the selected panel. Drop files on the cover, too. Photos never leave this machine.</p>
+    </section>
 
-    <fieldset>
-      <legend>2 &middot; Layout &amp; grade</legend>
-      <label>Layout
-        <select id="layout">
-          <option value="poster" selected>Poster &mdash; hero + three panels</option>
-          <option value="quad">Quad &mdash; four-panel grid</option>
-          <option value="nine">Nine &mdash; cover grid + title block</option>
-          <option value="solo">Solo &mdash; full-bleed hero</option>
-        </select>
-      </label>
-      <label>Colour grade
-        <select id="grade">
-          <option value="sunset" selected>Sunset &mdash; purple to gold</option>
-          <option value="neon">Neon night &mdash; teal &amp; pink</option>
-          <option value="vice">Vice pastel &mdash; pink &amp; cyan</option>
-          <option value="golden">Golden hour &mdash; warm film</option>
-          <option value="ink">Ink &mdash; high-contrast mono</option>
-          <option value="chrome">Chrome noir &mdash; crushed black &amp; steel</option>
-        </select>
-      </label>
-      <label class="check"><input id="grain" type="checkbox" checked> Film grain</label>
-      <label class="check"><input id="vignette" type="checkbox" checked> Vignette</label>
-      <label class="check"><input id="frame" type="checkbox" checked> Poster frame</label>
-      <label class="check"><input id="badge" type="checkbox" checked> Heat stars + ribbon</label>
-    </fieldset>
+    <section class="group">
+      <h2>2 · Layout</h2>
+      <div id="layout-row" class="button-row"></div>
+    </section>
 
-    <fieldset>
-      <legend>3 &middot; Caption</legend>
-      <label>Title <input id="title" type="text" maxlength="24" value="LEONIDA"></label>
-      <label>Subtitle (script) <input id="subtitle" type="text" maxlength="40" value="neon horizon"></label>
-      <label>Title size <input id="titleSize" type="range" min="0.6" max="1.6" step="0.02" value="1"></label>
-      <label>Title colour
-        <select id="titleFill">
-          <option value="sunsetfill" selected>Sunset gradient</option>
-          <option value="white">White</option>
-          <option value="neonfill">Neon gradient</option>
-          <option value="goldfill">Gold gradient</option>
-        </select>
-      </label>
-    </fieldset>
+    <section class="group">
+      <h2>3 · Colour grade</h2>
+      <div id="grade-row" class="button-row"></div>
+    </section>
 
-    <fieldset>
-      <legend>4 &middot; Export</legend>
-      <label>Post size
-        <select id="size">
-          <option value="1080x1350" selected>1080 &times; 1350 &mdash; portrait post</option>
-          <option value="1080x1080">1080 &times; 1080 &mdash; square post</option>
-          <option value="1920x1080">1920 &times; 1080 &mdash; landscape</option>
-          <option value="1080x1920">1080 &times; 1920 &mdash; story</option>
-        </select>
+    <section class="group">
+      <h2>4 · The words</h2>
+      <label class="field">Title
+        <input id="title" type="text" maxlength="26" autocomplete="off">
       </label>
-      <div class="row">
-        <button id="export" type="button">Export PNG</button>
-        <button id="exportAll" type="button">Export all sizes</button>
+      <label class="field">Script subtitle
+        <input id="subtitle" type="text" maxlength="30" autocomplete="off">
+      </label>
+      <label class="field">Edition line
+        <input id="author" type="text" maxlength="48" autocomplete="off">
+      </label>
+    </section>
+
+    <section class="group">
+      <h2 id="panel-heading">Panel 1 of 4</h2>
+      <div id="panel-tabs" class="panel-tabs"></div>
+      <label class="field zoom-field">Zoom <span id="zoom-value">100%</span>
+        <input id="zoom" type="range" min="1" max="3" step="0.01" value="1">
+      </label>
+      <div class="button-row">
+        <button id="flip" type="button">Flip photo</button>
+        <button id="spread" type="button">Fill all panels</button>
+        <button id="clear-photo" type="button">Clear photo</button>
       </div>
-      <div class="row">
-        <button id="undo" type="button">Undo</button>
-        <button id="redo" type="button">Redo</button>
-      </div>
-      <p id="status" role="status"></p>
-    </fieldset>
-  </section>
-  <section class="stage">
-    <canvas id="cover" width="1080" height="1350" aria-label="Cover preview"></canvas>
-  </section>
-</main>
+      <p class="hint">Drag the photo on the cover to reframe it; scroll to zoom; arrow keys switch panels.</p>
+    </section>
+
+    <section class="group">
+      <h2>5 · Export</h2>
+      <label class="field">Post size
+        <select id="size"></select>
+      </label>
+      <button id="export" type="button" class="export-button">Export PNG</button>
+      <p id="status" class="status" role="status"></p>
+    </section>
+  </aside>
+
+  <main id="stage" class="stage">
+    <canvas id="cover" width="1080" height="1080" aria-label="Your cover, live preview"></canvas>
+    <p class="stage-hint">Live preview at full export resolution — the PNG is this picture, minus the orange selection outline.</p>
+  </main>
+</div>
 <script type="module" src="./src/main.js"></script>
 </body>
 </html>
