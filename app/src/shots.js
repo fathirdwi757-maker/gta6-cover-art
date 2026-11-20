@@ -1,40 +1,40 @@
-// Fixed scenes for screenshots: ?shot=cover shows one exported cover alone at ?w x ?h;
-// ?shot=editor shows the studio with a cover loaded. Scene params: layout, grade, title,
-// subtitle, fill, photos (comma-separated sample indexes in panel order) and flip
-// (comma-separated panel indexes whose photo is mirrored horizontally).
-// window.__shotReady is set once the scene has painted.
-import { GRADES } from './cover.js';
+// Fixed scenes for the entry's screenshots.
+//
+// A `?shot=` address turns the studio into one named scene: `cover` shows a
+// finished cover on its own, `editor` shows the studio at work with a panel
+// selected. Query parameters pick the scene's layout, grade, size, words and
+// photos, so the maker's capture tool needs no clicks: it opens the address,
+// waits for window.__shotReady, and takes the picture. Nothing here runs in
+// a normal visit.
 
-/** Every grade the built-in demo shots may name — the renderer's own table, so a grade added
- *  to cover.js (such as Chrome Noir) is available to demo scenes as soon as it ships. */
-export const DEMO_GRADES = Object.keys(GRADES);
+/** Reads one scene parameter, falling back when the address does not set it. */
+function param(params, name, fallback) {
+  const value = params.get(name);
+  return value === null || value === '' ? fallback : value;
+}
 
-export function runShot(shot, query, api) {
-  const { state, useLayout, render, canvas } = api;
-  if (shot === 'cover') document.body.classList.add('shot-cover');
-  if (shot === 'editor') document.body.classList.add('shot-editor');
-
-  if (query.get('layout')) useLayout(query.get('layout'));
-  const grade = query.get('grade');
-  if (grade && DEMO_GRADES.includes(grade)) state.grade = grade;
-  if (query.get('title')) state.title = query.get('title');
-  if (query.get('subtitle')) state.subtitle = query.get('subtitle');
-  if (query.get('fill')) state.titleFill = query.get('fill');
-  if (query.get('photos')) {
-    query.get('photos').split(',').forEach((idx, i) => {
-      if (state.panels[i]) state.panels[i].photo = Number(idx);
-    });
-  }
-  if (query.get('flip')) {
-    query.get('flip').split(',').forEach((idx) => {
-      const panel = state.panels[Number(idx)];
-      if (panel) panel.flip = true;
-    });
-  }
-  if (query.get('w') && query.get('h')) {
-    canvas.width = Number(query.get('w'));
-    canvas.height = Number(query.get('h'));
-  }
-  render();
+/**
+ * Builds the scene the address describes through the studio's own controls,
+ * then flags the page ready once the cover has been painted twice (once for
+ * the images, once for the lettering's fonts).
+ */
+export async function runShot(shotName, params, studio) {
+  if (shotName === 'cover') studio.showCoverOnly();
+  studio.chooseLayout(param(params, 'layout', 'strip'));
+  studio.chooseGrade(param(params, 'grade', 'sunset'));
+  studio.chooseSize(param(params, 'size', 'wide'));
+  studio.setWords({
+    title: param(params, 'title', 'NEON HORIZON'),
+    subtitle: param(params, 'subtitle', 'Vice Nights'),
+    author: param(params, 'author', 'STARRING YOU · PALMERA COUNTY'),
+  });
+  const sampleList = param(params, 'samples', 'hotrod,garages,neonstreet,surfvan')
+    .split(',')
+    .map((name) => name.trim())
+    .filter(Boolean);
+  await studio.fillPanelsFromSamples(sampleList);
+  const selected = Number.parseInt(param(params, 'select', '-1'), 10);
+  if (Number.isInteger(selected) && selected >= 0) studio.selectPanel(selected);
+  await studio.settle();
   requestAnimationFrame(() => requestAnimationFrame(() => { window.__shotReady = true; }));
 }
