@@ -1,0 +1,78 @@
+/* Neon Horizon Cover Studio — dark neon editor theme. */
+:root {
+  --bg: #12081f;
+  --panel: #1d1033;
+  --panel-2: #261545;
+  --line: #3d2566;
+  --text: #f5eefc;
+  --muted: #b9a8d9;
+  --pink: #ff4d8d;
+  --teal: #2ee6c8;
+  --gold: #ffb340;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: radial-gradient(1200px 700px at 80% -10%, #3b1154 0%, var(--bg) 55%) fixed, var(--bg);
+  color: var(--text);
+  font: 15px/1.45 "Segoe UI", system-ui, sans-serif;
+}
+.app { display: flex; gap: 20px; align-items: flex-start; padding: 20px; max-width: 1560px; margin: 0 auto; }
+.controls {
+  flex: 0 0 330px; background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border: 1px solid var(--line); border-radius: 14px; padding: 18px 18px 10px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+}
+.controls h1 { font-size: 24px; margin: 0 0 2px; letter-spacing: 0.04em; text-transform: uppercase; }
+.controls h1 span { color: var(--pink); }
+.tagline { color: var(--muted); margin: 0 0 14px; font-size: 13.5px; }
+fieldset { border: 1px solid var(--line); border-radius: 10px; margin: 0 0 14px; padding: 10px 12px 12px; }
+legend { color: var(--gold); font-weight: 700; font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; padding: 0 6px; }
+label { display: block; margin: 8px 0; color: var(--muted); font-size: 13.5px; }
+label.check { color: var(--text); }
+input[type="text"], select {
+  width: 100%; margin-top: 4px; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid var(--line); background: #150a28; color: var(--text); font-size: 14.5px;
+}
+input[type="range"] { width: 100%; accent-color: var(--pink); }
+input[type="checkbox"] { accent-color: var(--pink); }
+label.file {
+  display: block; text-align: center; cursor: pointer; padding: 10px; border-radius: 9px;
+  background: linear-gradient(90deg, var(--pink), #ff7a3d); color: #fff; font-weight: 700;
+}
+label.file input { display: none; }
+.thumbs { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 2px; }
+.thumbs img {
+  width: 58px; height: 58px; object-fit: cover; border-radius: 8px; cursor: pointer;
+  border: 2px solid transparent; opacity: 0.85;
+}
+.thumbs img.active { border-color: var(--teal); opacity: 1; }
+.hint { color: var(--muted); font-size: 12.5px; margin: 8px 0 0; }
+/* The per-panel flip toggle belongs to the selected panel, like the photo picker and zoom
+   slider above it, so it takes the teal accent those panel controls highlight with. */
+#panelFlip { accent-color: var(--teal); }
+label.check:has(#panelFlip) { margin-top: 2px; }
+.row { display: flex; gap: 8px; margin-top: 8px; }
+button {
+  flex: 1; padding: 10px 8px; border: 0; border-radius: 9px; cursor: pointer;
+  background: #2c1a4d; color: var(--text); font-weight: 700; font-size: 14px;
+}
+button:hover { background: #3a2270; }
+#export { background: linear-gradient(90deg, var(--pink), #ff7a3d); color: #fff; }
+#exportAll { background: linear-gradient(90deg, #0e7a68, var(--teal)); color: #06281f; }
+#status { color: var(--teal); min-height: 1.2em; font-size: 13px; }
+.stage { flex: 1 1 auto; display: flex; justify-content: center; }
+#cover {
+  max-width: 100%; height: auto; border-radius: 6px; background: #000;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6); cursor: grab; touch-action: none;
+}
+#cover:active { cursor: grabbing; }
+
+/* Screenshot mode: the cover alone fills the viewport, pixel for pixel. */
+body.shot-cover { background: #000; }
+body.shot-cover .app { padding: 0; max-width: none; }
+body.shot-cover .controls { display: none; }
+body.shot-cover .stage { display: block; }
+body.shot-cover #cover { border-radius: 0; box-shadow: none; width: 100vw; height: 100vh; }
+body.shot-editor .app { padding: 14px; }
+body.shot-editor #cover { height: calc(100vh - 28px); width: auto; }
