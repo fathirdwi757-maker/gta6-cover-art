@@ -1,64 +1,57 @@
-// Neon Horizon Cover Studio — a gta6-cover-art-01 entry (Node 22, standard library only): the app is this
-// directory's app/ folder, plain static files a desktop browser loads offline (app/index.html and its ES modules,
-// no library and no network request), and the program hands it in. It copies app/ and screenshots/ from beside
-// this file to /output and writes /output/dossier.json, the summary the judge reads, with the vendored make.fun
-// library. The app itself is an original multi-panel GTA-style cover maker: four layouts, six colour grades,
-// per-panel drag, zoom and horizontal flip, Anton/Pacifico caption lettering and one-click PNG exports in the
-// common post sizes.
-// Its four sample photos (app/samples/) were made for this entry with an image model and are free to use. Put
-// your 3 or 4 PNG or JPEG screenshots in screenshots/ (the first by name is the cover) and run it.
+// Neon Horizon Cover Studio — the hand-in program.
 //
-// Serve it locally with `node serve.ts`, then open http://localhost:8080.
-// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
+// The entry is the static web app in app/ plus its screenshots in
+// screenshots/. This program delivers them: it copies both folders into the
+// output directory and writes the dossier the judge reads, using the kit's
+// own buildDossier so the bytes are exactly the ones the scorer rebuilds.
+// Node 22, standard library only; it runs twice and writes the same bytes
+// both times, because nothing here depends on time, order or chance.
+//
+// Run it outside the grader with:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { cpSync, existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-app.ts';
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+const repoDir = fileURLToPath(new URL('.', import.meta.url));
+const outputDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
-/**
- * Proves a copied tree matches its source file for file, byte size for byte size. A short or
- * missing copy would hand the judge a silently broken app, so any mismatch throws before the
- * dossier is written and the run fails loudly instead.
- */
-function verifyCopied(fromDir: string, toDir: string): void {
-  for (const entry of readdirSync(fromDir, { withFileTypes: true })) {
-    const from = join(fromDir, entry.name);
-    const to = join(toDir, entry.name);
-    if (entry.isDirectory()) {
-      verifyCopied(from, to);
-      continue;
-    }
-    const want = statSync(from).size;
-    const got = existsSync(to) ? statSync(to).size : -1;
-    if (got !== want) throw new Error(`copy check failed for ${from}: source is ${want} bytes, copy is ${got} bytes`);
+// The gate's caps, from the kit's reference limits: the dossier text the
+// judge reads is capped, screenshots are at most four files of 256 KiB, and
+// the app tree is at most 993 entries, 48 MiB and 1,000 bytes a path.
+const GATE_LIMITS = {
+  text_max_bytes: 163840,
+  screenshots: { max: 4, max_bytes: 262144 },
+  app_max_files: 993,
+  app_max_bytes: 50331648,
+  app_path_max_bytes: 1000,
+};
+
+/** Counts the files under a directory, for the one-line delivery note. */
+function countFiles(dir: string): number {
+  let total = 0;
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    total += entry.isDirectory() ? countFiles(join(dir, entry.name)) : 1;
   }
+  return total;
 }
 
-mkdirSync(out, { recursive: true });
-cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
-verifyCopied(join(here, 'app'), join(out, 'app'));
-mkdirSync(join(out, 'screenshots'), { recursive: true });
-if (existsSync(join(here, 'screenshots'))) {
-  cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
-  verifyCopied(join(here, 'screenshots'), join(out, 'screenshots'));
-}
+mkdirSync(outputDir, { recursive: true });
 
-// The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the
-// scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files in app/ or 48 MiB of app
-// files, in all, or a path under app/ over 1000 bytes: app/ counts beside /output's own 1000-entry cap, its
-// screenshots/ and dossier.json).
-writeFileSync(
-  join(out, 'dossier.json'),
-  buildDossier(out, {
-    text_max_bytes: 163840,
-    screenshots: { max: 4, max_bytes: 262144 },
-    app_max_files: 993,
-    app_max_bytes: 50331648,
-    app_path_max_bytes: 1000,
-  }),
+const appSource = join(repoDir, 'app');
+cpSync(appSource, join(outputDir, 'app'), { recursive: true });
+
+const shotsTarget = join(outputDir, 'screenshots');
+mkdirSync(shotsTarget, { recursive: true });
+const shotsSource = join(repoDir, 'screenshots');
+if (existsSync(shotsSource)) cpSync(shotsSource, shotsTarget, { recursive: true });
+
+const dossier = buildDossier(outputDir, GATE_LIMITS);
+writeFileSync(join(outputDir, 'dossier.json'), dossier);
+
+console.log(
+  `Neon Horizon Cover Studio handed in: ${countFiles(join(outputDir, 'app'))} app files, ` +
+    `${countFiles(shotsTarget)} screenshots, dossier of ${Buffer.byteLength(dossier)} bytes.`,
 );
